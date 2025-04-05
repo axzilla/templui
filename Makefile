@@ -30,3 +30,24 @@ generate-sitemap:
 
 generate-icons:
 	go run cmd/icongen/main.go
+
+
+# Validate generated HTML files against Eslint plugins
+# Step 1: Compile templ files into Go
+templ-generate:
+	templ generate
+
+# Step 2: Render showcase components into out/showcase/
+render-showcases:
+	go run ./cmd/render-showcases
+
+# Step 3: Combined task
+build-html: templ-generate render-showcases
+	@echo "✅ Static showcase HTML rendered to ./out"
+
+# Step 4: Lint HTML output using ESLint
+lint-html:
+	npx eslint "out/**/*.html" --ext .html
+
+# Step 6: Run full pipeline (build + lint)
+validate-html: build-html lint-html
