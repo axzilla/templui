@@ -28,7 +28,7 @@ jobs:
           echo "$HOME/.bun/bin" >> $GITHUB_PATH
 
       - name: 📦 Install Templ
-        run: go install github.com/a-h/templ/cmd/templ@latest
+        run: go install github.com/a-h/templ/cmd/templ@v0.3.856
 
       - name: 📦 Install Node dependencies
         run: |
