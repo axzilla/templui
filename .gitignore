@@ -10,3 +10,5 @@ bin
 node_modules
 tmp
 .env
+
+out

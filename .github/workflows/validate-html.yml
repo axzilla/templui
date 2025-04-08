@@ -1,0 +1,38 @@
+name: Validate HTML
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  validate-html:
+    name: 🧪 Build & Lint HTML from TemplUI Components
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 🛎️ Checkout code
+        uses: actions/checkout@v4
+
+      - name: 🧰 Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.21"
+
+      - name: 📦 Install Go + Node deps
+        run: |
+          sudo apt update
+          sudo apt install -y curl
+          curl -fsSL https://bun.sh/install | bash
+          echo "$HOME/.bun/bin" >> $GITHUB_PATH
+
+      - name: 📦 Install Templ
+        run: go install github.com/a-h/templ/cmd/templ@v0.3.856
+
+      - name: 📦 Install Node dependencies
+        run: |
+          npm ci
+
+      - name: ✅ Run `make validate-html`
+        run: make validate-html

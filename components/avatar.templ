@@ -86,9 +86,7 @@ templ AvatarImage(props ...AvatarImageProps) {
 		if p.Src != "" {
 			src={ p.Src }
 		}
-		if p.Alt != "" {
-			alt={ p.Alt }
-		}
+		alt={ avatarAlt(p) }
 		class={
 			utils.TwMerge(
 				"w-full h-full",
@@ -200,4 +198,21 @@ func avatarGroupSpacingClasses(spacing AvatarGroupSpacing) string {
 	default:
 		return "-space-x-2"
 	}
+}
+
+
+func avatarAlt(p AvatarImageProps) string {
+	if p.Alt != "" {
+		return p.Alt
+	}
+
+	if p.ID != "" {
+		return fmt.Sprintf("Avatar of %s", p.ID)
+	}
+
+	if p.Src != "" {
+		return "User avatar"
+	}
+
+	return ""
 }
