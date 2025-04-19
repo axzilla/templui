@@ -90,6 +90,7 @@ func main() {
 	mux.Handle("GET /swap", templ.Handler(pages.Swap()))
 	mux.HandleFunc("POST /swap", func(w http.ResponseWriter, r *http.Request) {
 		showcase.SelectBoxDefault().Render(r.Context(), w)
+		showcase.DatePickerDefault().Render(r.Context(), w)
 	})
 	//
 

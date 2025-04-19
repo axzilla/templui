@@ -300,62 +300,62 @@ templ Script() {
 					init() {
 							// Parse Month and Day names
 						try {
-							this.monthNames = JSON.parse(this.$el.dataset.monthnames) || [];
-							this.dayNames = JSON.parse(this.$el.dataset.daynames) || [];
-							
-							if (!this.monthNames.length) {
-								this.monthNames = [
-									'January',
-									'February', 
-									'March',
-									'April',
-									'May',
-									'June',
-									'July', 
-									'August',
-									'September',
-									'October',
-									'November',
-									'December'
-								];
-							}
-							if (!this.dayNames.length) {
-								this.dayNames = [
-									'Su',
-									'Mo',
-									'Tu', 
-									'We',
-									'Th',
-									'Fr',
-									'Sa'
-								];
-							}
-							
-							// Format and Placeholder
-							this.format = this.$el.dataset.format || 'iso';
-							this.placeholder = this.$el.dataset.placeholder || 'Select a date';
-							
-							// Process initial value
-							const initialValue = this.$el.dataset.value;
-							if (initialValue) {
-								const initialDate = new Date(this.parseDate(initialValue));
-								this.currentMonth = initialDate.getMonth();
-								this.currentYear = initialDate.getFullYear();
-								this.value = this.formatDate(initialDate);
+								this.monthNames = JSON.parse(this.$el.dataset.monthnames) || [];
+								this.dayNames = JSON.parse(this.$el.dataset.daynames) || [];
 								
-								// Update hidden input
-								this.$refs.hiddenInput.value = this.value;
+								if (!this.monthNames.length) {
+									this.monthNames = [
+										'January',
+										'February', 
+										'March',
+										'April',
+										'May',
+										'June',
+										'July', 
+										'August',
+										'September',
+										'October',
+										'November',
+										'December'
+									];
+								}
+								if (!this.dayNames.length) {
+									this.dayNames = [
+										'Su',
+										'Mo',
+										'Tu', 
+										'We',
+										'Th',
+										'Fr',
+										'Sa'
+									];
+								}
 								
-								// Update display text
-								this.updateDisplayText();
+								// Format and Placeholder
+								this.format = this.$el.dataset.format || 'iso';
+								this.placeholder = this.$el.dataset.placeholder || 'Select a date';
+								
+								// Process initial value
+								const initialValue = this.$el.dataset.value;
+								if (initialValue) {
+									const initialDate = new Date(this.parseDate(initialValue));
+									this.currentMonth = initialDate.getMonth();
+									this.currentYear = initialDate.getFullYear();
+									this.value = this.formatDate(initialDate);
+									
+									// Update hidden input
+									this.$refs.hiddenInput.value = this.value;
+									
+									// Update display text
+									this.updateDisplayText();
+								}
+								
+								// Initialize UI
+								this.updateMonthDisplay();
+								this.renderWeekdays();
+							} catch(e) {
+								console.error('DatePicker initialization error:', e);
 							}
-							
-							// Initialize UI
-							this.updateMonthDisplay();
-							this.renderWeekdays();
-						} catch(e) {
-							console.error('DatePicker initialization error:', e);
-						}
 					},
 					
 					updateDisplayText() {
@@ -578,6 +578,13 @@ templ Script() {
 						this.$refs.triggerButton.focus();
 					}
 				}));
+			});
+
+			document.body.addEventListener('htmx:afterSwap', function(event) {
+				const targetElement = event.target;
+				if (targetElement instanceof Element) { 
+					Alpine.initTree(targetElement);
+				}
 			});
 		</script>
 	}
