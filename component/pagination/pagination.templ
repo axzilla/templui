@@ -42,6 +42,7 @@ type PreviousProps struct {
 	Attributes templ.Attributes
 	Href       string
 	Disabled   bool
+	Label      string
 	HxGet      string
 	HxTarget   string
 	HxSwap     string
@@ -53,6 +54,7 @@ type NextProps struct {
 	Attributes templ.Attributes
 	Href       string
 	Disabled   bool
+	Label      string
 	HxGet      string
 	HxTarget   string
 	HxSwap     string
@@ -167,7 +169,9 @@ templ Previous(props ...PreviousProps) {
 		Attributes: p.Attributes,
 	}) {
 		@icon.ChevronLeft(icon.Props{Size: 16})
-		<span>Previous</span>
+		if p.Label != "" {
+		    <span>{ p.Label }</span>
+		}
 	}
 }
 
@@ -187,7 +191,9 @@ templ Next(props ...NextProps) {
 		Class:      util.TwMerge("gap-1", p.Class),
 		Attributes: p.Attributes,
 	}) {
-		<span>Next</span>
+		if p.Label != "" {
+            <span>{ p.Label }</span>
+        }
 		@icon.ChevronRight(icon.Props{Size: 16})
 	}
 }

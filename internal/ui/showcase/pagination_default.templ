@@ -11,6 +11,7 @@ templ PaginationDefault() {
 				@pagination.Previous(pagination.PreviousProps{
 					Href:     "?page=1",
 					Disabled: false,
+					Label: "Previous",
 				})
 			}
 			@pagination.Item() {
@@ -41,6 +42,7 @@ templ PaginationDefault() {
 			@pagination.Item() {
 				@pagination.Next(pagination.NextProps{
 					Href: "?page=3",
+					Label: "Next",
 				})
 			}
 		}

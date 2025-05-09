@@ -13,6 +13,7 @@ templ PaginationWithHelper() {
 				@pagination.Previous(pagination.PreviousProps{
 					Href:     fmt.Sprintf("?page=%d", p.CurrentPage-1),
 					Disabled: !p.HasPrevious,
+					Label: "Previous",
 				})
 			}
 			// First page with ellipsis if needed
@@ -60,6 +61,7 @@ templ PaginationWithHelper() {
 				@pagination.Next(pagination.NextProps{
 					Href:     fmt.Sprintf("?page=%d", p.CurrentPage+1),
 					Disabled: !p.HasNext,
+					Label: "Next",
 				})
 			}
 		}
