@@ -33,6 +33,8 @@ var versionRegex = regexp.MustCompile(`(?m)^\s*//\s*templui\s+(?:component|util)
 
 // Flags defined for the command line interface.
 var forceOverwrite = flag.Bool("force", false, "Force overwrite existing files without asking")
+var versionFlag = flag.Bool("version", false, "Show installer version")
+var helpFlag = flag.Bool("help", false, "Show this help message")
 
 // Config defines the structure for the .templui.json file.
 type Config struct {
@@ -66,30 +68,25 @@ type UtilDef struct {
 func main() {
 	// Define a shorthand -f for the --force flag.
 	flag.BoolVar(forceOverwrite, "f", false, "Force overwrite existing files without asking (shorthand)")
+
+	// Define version flags
+	flag.BoolVar(versionFlag, "v", false, "Show installer version")
+	flag.BoolVar(helpFlag, "h", false, "Show this help message")
+
 	// Set a custom usage function to show our specific help message.
 	flag.Usage = func() {
 		showHelp(nil, defaultRef)
 	}
 	flag.Parse() // Parse command line flags first.
 
-	args := flag.Args() // Get the remaining non-flag arguments.
-
-	if len(args) == 0 {
-		fmt.Println("No command specified.")
-		showHelp(nil, defaultRef)
-		return
-	}
-
-	commandArg := args[0] // The command is the first non-flag argument.
-
 	// Handle version display.
-	if commandArg == "-v" || commandArg == "--version" {
+	if *versionFlag {
 		fmt.Printf("templUI %s\n", version)
 		return
 	}
 
 	// Handle help display.
-	if commandArg == "-h" || commandArg == "--help" {
+	if *helpFlag {
 		fmt.Println("Fetching manifest for help...")
 		manifest, err := fetchManifest(defaultRef)
 		if err != nil {
@@ -100,6 +97,16 @@ func main() {
 		}
 		return
 	}
+
+	args := flag.Args() // Get the remaining non-flag arguments.
+
+	if len(args) == 0 {
+		fmt.Println("No command specified.")
+		showHelp(nil, defaultRef)
+		return
+	}
+
+	commandArg := args[0] // The command is the first non-flag argument.
 
 	// Handle the 'init' command.
 	if strings.HasPrefix(commandArg, "init") {
