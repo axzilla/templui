@@ -21,13 +21,21 @@ type Props struct {
 }
 
 type TriggerProps struct {
-	ID         string
-	Class      string
-	Attributes templ.Attributes
-	Name       string
-	Required   bool
-	Disabled   bool
-	HasError   bool
+	ID           string
+	Class        string
+	Attributes   templ.Attributes
+	Name         string
+	Required     bool
+	Disabled     bool
+	HasError     bool
+	HxGet        string
+	HxPost       string
+	HxPut        string
+	HxDelete     string
+	HxTrigger    string
+	HxTarget     string
+	HxSwap       string
+	HxReplaceUrl string
 }
 
 type ValueProps struct {
@@ -129,6 +137,30 @@ templ Trigger(props ...TriggerProps) {
 					name={ p.Name }
 				}
 				required?={ p.Required }
+				if p.HxGet != "" {
+					hx-get={ p.HxGet }
+				}
+				if p.HxPost != "" {
+					hx-post={ p.HxPost }
+				}
+				if p.HxPut != "" {
+					hx-put={ p.HxPut }
+				}
+				if p.HxDelete != "" {
+					hx-delete={ p.HxDelete }
+				}
+				if p.HxTrigger != "" {
+					hx-trigger={ p.HxTrigger }
+				}
+				if p.HxTarget != "" {
+					hx-target={ p.HxTarget }
+				}
+				if p.HxSwap != "" {
+					hx-swap={ p.HxSwap }
+				}
+				if p.HxReplaceUrl != "" {
+					hx-replace-url={ p.HxReplaceUrl }
+				}
 			/>
 			{ children... }
 			<span class="pointer-events-none ml-1">
@@ -304,6 +336,7 @@ templ Script() {
 						}
 						if (hiddenInput) {
 							hiddenInput.value = selectedItem.getAttribute('data-value') || '';
+							hiddenInput.dispatchEvent(new Event('change', { bubbles: true }));
 						}
 					}
 
@@ -412,6 +445,11 @@ templ Script() {
 				document.addEventListener('DOMContentLoaded', () => initAllComponents());
 				document.body.addEventListener('htmx:afterSwap', handleHtmxSwap);
 				document.body.addEventListener('htmx:oobAfterSwap', handleHtmxSwap);
+				window.addEventListener('popstate', () => {
+                    requestAnimationFrame(() => {
+                        initAllComponents(document);
+                    });
+                });
 			})(); // End of IIFE
 		</script>
 	}
