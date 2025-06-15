@@ -16,6 +16,8 @@ type Props struct {
 	AutoResize  bool
 	Disabled    bool
 	Required    bool
+	Readonly    bool
+
 }
 
 templ Textarea(props ...Props) {
@@ -40,6 +42,7 @@ templ Textarea(props ...Props) {
 		}
 		disabled?={ p.Disabled }
 		required?={ p.Required }
+		readonly?={ p.Readonly }
 		if p.AutoResize {
 			data-auto-resize="true"
 		}
