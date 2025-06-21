@@ -6,6 +6,7 @@ import "./code/code.js";
 import "./datepicker/datepicker.js";
 import "./drawer/drawer.js";
 import "./dropdown/dropdown.js";
+import "./form/form.js";
 import "./input/input.js";
 import "./inputotp/inputotp.js";
 import "./label/label.js";

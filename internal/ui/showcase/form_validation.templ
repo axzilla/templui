@@ -1,0 +1,329 @@
+package showcase
+
+import (
+	"github.com/axzilla/templui/internal/components/button"
+	"github.com/axzilla/templui/internal/components/form"
+	"github.com/axzilla/templui/internal/components/input"
+)
+
+templ FormWithValidation() {
+	<div class="w-full max-w-md space-y-8">
+		<div>
+			<h3 class="text-lg font-medium">Contact Form</h3>
+			<p class="text-sm text-muted-foreground">Send us a message with validation.</p>
+		</div>
+		
+		@form.ValidatedForm(form.ValidatedFormProps{
+			FormProps: form.FormProps{
+				ID:     "contact-form",
+				Action: "/contact",
+				Method: "post",
+			},
+			ValidateOnBlur:      true,
+			ValidateOnInput:     true,
+			ClearErrorsOnFocus:  true,
+			ClearErrorsOnInput:  true,
+			ShowSuccessState:    true,
+		}) {
+			@form.Item() {
+				@form.Label(form.LabelProps{
+					For: "name",
+				}) {
+					Name
+				}
+				@form.Control() {
+					@input.Input(input.Props{
+						ID:          "name",
+						Name:        "name",
+						Type:        input.TypeText,
+						Placeholder: "Your name",
+						Attributes: templ.Attributes{
+							"required":  "",
+							"data-min":  "2",
+							"data-max":  "50",
+						},
+					})
+				}
+				@form.Description() {
+					Enter your full name.
+				}
+				@form.Message(form.MessageProps{
+					Attributes: templ.Attributes{
+						"data-field": "name",
+						"style":      "display: none;",
+					},
+					Variant: form.MessageVariantError,
+				}) {
+					<!-- Client-side error will be inserted here -->
+				}
+			}
+			
+			@form.Item() {
+				@form.Label(form.LabelProps{
+					For: "email",
+				}) {
+					Email
+				}
+				@form.Control() {
+					@input.Input(input.Props{
+						ID:          "email",
+						Name:        "email",
+						Type:        input.TypeEmail,
+						Placeholder: "m@example.com",
+						Attributes: templ.Attributes{
+							"required": "",
+						},
+					})
+				}
+				@form.Description() {
+					We'll never share your email.
+				}
+				@form.Message(form.MessageProps{
+					Attributes: templ.Attributes{
+						"data-field": "email",
+						"style":      "display: none;",
+					},
+					Variant: form.MessageVariantError,
+				}) {
+					<!-- Client-side error will be inserted here -->
+				}
+			}
+			
+			@form.Item() {
+				@form.Label(form.LabelProps{
+					For: "message",
+				}) {
+					Message
+				}
+				@form.Control() {
+					<textarea
+						id="message"
+						name="message"
+						placeholder="Your message here..."
+						required
+						data-min="10"
+						data-max="500"
+						rows="4"
+						class="flex min-h-[60px] w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+					></textarea>
+				}
+				@form.Description() {
+					Tell us what's on your mind.
+				}
+				@form.Message(form.MessageProps{
+					Attributes: templ.Attributes{
+						"data-field": "message",
+						"style":      "display: none;",
+					},
+					Variant: form.MessageVariantError,
+				}) {
+					<!-- Client-side error will be inserted here -->
+				}
+			}
+			
+			@button.Button(button.Props{
+				Type: button.TypeSubmit,
+			}) {
+				Send Message
+			}
+		}
+	</div>
+}
+
+templ FormAdvanced() {
+	<div class="w-full max-w-md space-y-8">
+		<div>
+			<h3 class="text-lg font-medium">User Registration</h3>
+			<p class="text-sm text-muted-foreground">Create your account with advanced validation.</p>
+		</div>
+		
+		@form.ValidatedForm(form.ValidatedFormProps{
+			FormProps: form.FormProps{
+				ID:     "register-form",
+				Action: "/register",
+				Method: "post",
+			},
+			ValidateOnBlur:      true,
+			ValidateOnChange:    true,
+			ValidateOnInput:     true,
+			ClearErrorsOnFocus:  false, // Keep errors visible longer for complex form
+			ClearErrorsOnInput:  true,
+			ShowSuccessState:    true,
+		}) {
+			<div class="grid grid-cols-2 gap-4">
+				@form.Item() {
+					@form.Label(form.LabelProps{
+						For: "firstName",
+					}) {
+						First Name
+					}
+					@form.Control() {
+						@input.Input(input.Props{
+							ID:          "firstName",
+							Name:        "firstName",
+							Type:        input.TypeText,
+							Placeholder: "John",
+							Attributes: templ.Attributes{
+								"required":  "",
+								"data-min":  "2",
+								"data-max":  "30",
+							},
+						})
+					}
+					@form.Message(form.MessageProps{
+						Attributes: templ.Attributes{
+							"data-field": "firstName",
+							"style":      "display: none;",
+						},
+						Variant: form.MessageVariantError,
+					}) {
+						<!-- Client-side error will be inserted here -->
+					}
+				}
+				
+				@form.Item() {
+					@form.Label(form.LabelProps{
+						For: "lastName",
+					}) {
+						Last Name
+					}
+					@form.Control() {
+						@input.Input(input.Props{
+							ID:          "lastName",
+							Name:        "lastName",
+							Type:        input.TypeText,
+							Placeholder: "Doe",
+							Attributes: templ.Attributes{
+								"required":  "",
+								"data-min":  "2",
+								"data-max":  "30",
+							},
+						})
+					}
+					@form.Message(form.MessageProps{
+						Attributes: templ.Attributes{
+							"data-field": "lastName",
+							"style":      "display: none;",
+						},
+						Variant: form.MessageVariantError,
+					}) {
+						<!-- Client-side error will be inserted here -->
+					}
+				}
+			</div>
+			
+			@form.Item() {
+				@form.Label(form.LabelProps{
+					For: "username",
+				}) {
+					Username
+				}
+				@form.Control() {
+					@input.Input(input.Props{
+						ID:          "username",
+						Name:        "username",
+						Type:        input.TypeText,
+						Placeholder: "johndoe",
+						Attributes: templ.Attributes{
+							"required":        "",
+							"data-min":        "3",
+							"data-max":        "20",
+							"data-pattern":    "^[a-zA-Z0-9_]+$",
+							"data-pattern-message": "Only letters, numbers and underscore allowed",
+						},
+					})
+				}
+				@form.Description() {
+					3-20 characters, letters, numbers and underscore only.
+				}
+				@form.Message(form.MessageProps{
+					Attributes: templ.Attributes{
+						"data-field": "username",
+						"style":      "display: none;",
+					},
+					Variant: form.MessageVariantError,
+				}) {
+					<!-- Client-side error will be inserted here -->
+				}
+			}
+			
+			@form.Item() {
+				@form.Label(form.LabelProps{
+					For: "email",
+				}) {
+					Email
+				}
+				@form.Control() {
+					@input.Input(input.Props{
+						ID:          "email",
+						Name:        "email",
+						Type:        input.TypeEmail,
+						Placeholder: "john@example.com",
+						Attributes: templ.Attributes{
+							"required": "",
+						},
+					})
+				}
+				@form.Message(form.MessageProps{
+					Attributes: templ.Attributes{
+						"data-field": "email",
+						"style":      "display: none;",
+					},
+					Variant: form.MessageVariantError,
+				}) {
+					<!-- Client-side error will be inserted here -->
+				}
+			}
+			
+			@form.Item() {
+				@form.Label(form.LabelProps{
+					For: "password",
+				}) {
+					Password
+				}
+				@form.Control() {
+					@input.Input(input.Props{
+						ID:          "password",
+						Name:        "password",
+						Type:        input.TypePassword,
+						Placeholder: "••••••••",
+						Attributes: templ.Attributes{
+							"required":  "",
+							"data-min":  "8",
+							"data-max":  "128",
+						},
+					})
+				}
+				@form.Description() {
+					Minimum 8 characters required.
+				}
+				@form.Message(form.MessageProps{
+					Attributes: templ.Attributes{
+						"data-field": "password",
+						"style":      "display: none;",
+					},
+					Variant: form.MessageVariantError,
+				}) {
+					<!-- Client-side error will be inserted here -->
+				}
+			}
+			
+			<div class="flex gap-3">
+				@button.Button(button.Props{
+					Type: button.TypeSubmit,
+				}) {
+					Create Account
+				}
+				@button.Button(button.Props{
+					Type:    button.TypeButton,
+					Variant: button.VariantOutline,
+					Attributes: templ.Attributes{
+						"onclick": "document.getElementById('register-form')._templForm.reset()",
+					},
+				}) {
+					Reset
+				}
+			</div>
+		}
+	</div>
+}

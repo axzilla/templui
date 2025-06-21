@@ -1,0 +1,139 @@
+package showcase
+
+import (
+	"github.com/axzilla/templui/internal/components/button"
+	"github.com/axzilla/templui/internal/components/form"
+	"github.com/axzilla/templui/internal/components/input"
+)
+
+// Example of hybrid server/client validation
+// You would call this from your handler with server errors
+templ FormWithServerErrors(errors map[string]string) {
+	<div class="w-full max-w-md space-y-8">
+		<div>
+			<h3 class="text-lg font-medium">Registration with Server Validation</h3>
+			<p class="text-sm text-muted-foreground">Form that shows both server and client errors.</p>
+		</div>
+		
+		@form.ValidatedForm(form.ValidatedFormProps{
+			FormProps: form.FormProps{
+				ID:     "hybrid-form",
+				Action: "/register",
+				Method: "post",
+			},
+			ValidateOnBlur:      true,
+			ValidateOnInput:     true,
+			ClearErrorsOnFocus:  true,
+			ClearErrorsOnInput:  true,
+			ShowSuccessState:    true,
+		}) {
+			@form.Item() {
+				@form.Label(form.LabelProps{
+					For: "username",
+				}) {
+					Username
+				}
+				@form.Control() {
+					@input.Input(input.Props{
+						ID:          "username",
+						Name:        "username",
+						Type:        input.TypeText,
+						Placeholder: "johndoe",
+						Attributes: templ.Attributes{
+							"required":  "",
+							"data-min":  "3",
+							"data-max":  "20",
+							"data-pattern": "^[a-zA-Z0-9_]+$",
+							"data-pattern-message": "Only letters, numbers and underscore allowed",
+						},
+					})
+				}
+				@form.Description() {
+					3-20 characters, letters, numbers and underscore only.
+				}
+				
+				// Server-side error (if exists) or client-side placeholder
+				if errors["username"] != "" {
+					// Server error - visible immediately
+					@form.Message(form.MessageProps{
+						Attributes: templ.Attributes{
+							"data-field": "username",
+						},
+						Variant: form.MessageVariantError,
+					}) {
+						{ errors["username"] }
+					}
+				} else {
+					// Client-side placeholder - hidden until validation
+					@form.Message(form.MessageProps{
+						Attributes: templ.Attributes{
+							"data-field": "username",
+							"style":      "display: none;",
+						},
+						Variant: form.MessageVariantError,
+					}) {
+						<!-- Client-side error will be inserted here -->
+					}
+				}
+			}
+			
+			@form.Item() {
+				@form.Label(form.LabelProps{
+					For: "email",
+				}) {
+					Email
+				}
+				@form.Control() {
+					@input.Input(input.Props{
+						ID:          "email",
+						Name:        "email",
+						Type:        input.TypeEmail,
+						Placeholder: "john@example.com",
+						Attributes: templ.Attributes{
+							"required": "",
+						},
+					})
+				}
+				
+				// Server-side error (if exists) or client-side placeholder
+				if errors["email"] != "" {
+					// Server error - visible immediately
+					@form.Message(form.MessageProps{
+						Attributes: templ.Attributes{
+							"data-field": "email",
+						},
+						Variant: form.MessageVariantError,
+					}) {
+						{ errors["email"] }
+					}
+				} else {
+					// Client-side placeholder - hidden until validation
+					@form.Message(form.MessageProps{
+						Attributes: templ.Attributes{
+							"data-field": "email",
+							"style":      "display: none;",
+						},
+						Variant: form.MessageVariantError,
+					}) {
+						<!-- Client-side error will be inserted here -->
+					}
+				}
+			}
+			
+			@button.Button(button.Props{
+				Type: button.TypeSubmit,
+			}) {
+				Register
+			}
+		}
+		
+		// Usage example comment
+		<div class="mt-8 p-4 bg-muted rounded-lg">
+			<h4 class="font-medium text-sm mb-2">Usage in Go handler:</h4>
+			<p class="text-xs text-muted-foreground">
+				Check server errors map and render form.Message() conditionally.
+				Client-side validation will override when user interacts with fields.
+			</p>
+		</div>
+	</div>
+}

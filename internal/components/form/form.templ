@@ -1,6 +1,7 @@
 package form
 
 import (
+	"strconv"
 	"github.com/axzilla/templui/internal/components/label"
 	"github.com/axzilla/templui/internal/utils"
 )
@@ -37,6 +38,51 @@ type MessageProps struct {
 	Class      string
 	Attributes templ.Attributes
 	Variant    MessageVariant
+}
+
+// FormProps represents a form with validation
+type FormProps struct {
+	ID         string
+	Class      string
+	Attributes templ.Attributes
+	Schema     map[string]interface{} // Validation schema
+	Action     string
+	Method     string
+}
+
+// ControlProps represents form control wrapper
+type ControlProps struct {
+	ID         string
+	Class      string
+	Attributes templ.Attributes
+}
+
+// FieldProps represents a complete form field with validation
+type FieldProps struct {
+	Name        string
+	Label       string
+	Type        string
+	Placeholder string
+	Value       string
+	Required    bool
+	Min         int
+	Max         int
+	Pattern     string
+	Class       string
+	InputClass  string
+	ID          string
+	Attributes  templ.Attributes
+}
+
+// ValidatedFormProps contains configuration for form validation behavior
+type ValidatedFormProps struct {
+	FormProps
+	ValidateOnBlur      bool   // Validate field when it loses focus (default: true)
+	ValidateOnChange    bool   // Validate field on change event (default: false)
+	ValidateOnInput     bool   // Validate field on input event (default: true)
+	ClearErrorsOnFocus  bool   // Clear errors when field gets focus (default: true)
+	ClearErrorsOnInput  bool   // Clear errors immediately when user starts typing (default: true)
+	ShowSuccessState    bool   // Show green border for valid fields (default: true)
 }
 
 templ Item(props ...ItemProps) {
@@ -122,6 +168,166 @@ templ Message(props ...MessageProps) {
 	>
 		{ children... }
 	</p>
+}
+
+templ Form(props FormProps) {
+	<form
+		if props.ID != "" {
+			id={ props.ID }
+		}
+		if props.Action != "" {
+			action={ props.Action }
+		}
+		method={ getMethod(props.Method) }
+		class={ utils.TwMerge("space-y-6", props.Class) }
+		data-form-validate="true"
+		{ props.Attributes... }
+	>
+		{ children... }
+	</form>
+}
+
+templ Control(props ...ControlProps) {
+	{{ var p ControlProps }}
+	if len(props) > 0 {
+		{{ p = props[0] }}
+	}
+	<div
+		if p.ID != "" {
+			id={ p.ID }
+		}
+		class={ utils.TwMerge("", p.Class) }
+		{ p.Attributes... }
+	>
+		{ children... }
+	</div>
+}
+
+templ Field(props FieldProps) {
+	{{
+		fieldID := props.ID
+		if fieldID == "" {
+			fieldID = "field-" + props.Name
+		}
+	}}
+	@Item() {
+		if props.Label != "" {
+			@Label(LabelProps{
+				For: fieldID,
+			}) {
+				{ props.Label }
+				if props.Required {
+					<span class="text-red-500 ml-1">*</span>
+				}
+			}
+		}
+		
+		@Control() {
+			<input
+				id={ fieldID }
+				name={ props.Name }
+				type={ getInputType(props.Type) }
+				if props.Placeholder != "" {
+					placeholder={ props.Placeholder }
+				}
+				if props.Value != "" {
+					value={ props.Value }
+				}
+				if props.Required {
+					required
+					data-required="true"
+				}
+				if props.Min > 0 {
+					data-min={ strconv.Itoa(props.Min) }
+				}
+				if props.Max > 0 {
+					data-max={ strconv.Itoa(props.Max) }
+				}
+				if props.Pattern != "" {
+					data-pattern={ props.Pattern }
+				}
+				class={ utils.TwMerge(
+					"flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors",
+					"file:border-0 file:bg-transparent file:text-sm file:font-medium",
+					"placeholder:text-muted-foreground",
+					"focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring",
+					"disabled:cursor-not-allowed disabled:opacity-50",
+					props.InputClass,
+				) }
+				{ props.Attributes... }
+			/>
+		}
+		
+		<!-- Error message will be inserted here by JS -->
+		<div class="form-message" data-field={ props.Name } style="display: none;"></div>
+	}
+}
+
+// ValidatedForm creates a form with advanced validation triggers
+templ ValidatedForm(props ValidatedFormProps) {
+	{{
+		// Set default validation options
+		validateOnBlur := "true"
+		if !props.ValidateOnBlur {
+			validateOnBlur = "false"
+		}
+		validateOnChange := "false"
+		if props.ValidateOnChange {
+			validateOnChange = "true"
+		}
+		validateOnInput := "true"
+		if !props.ValidateOnInput {
+			validateOnInput = "false"
+		}
+		clearErrorsOnFocus := "true"
+		if !props.ClearErrorsOnFocus {
+			clearErrorsOnFocus = "false"
+		}
+		clearErrorsOnInput := "true"
+		if !props.ClearErrorsOnInput {
+			clearErrorsOnInput = "false"
+		}
+		showSuccessState := "true"
+		if !props.ShowSuccessState {
+			showSuccessState = "false"
+		}
+	}}
+	<form
+		if props.ID != "" {
+			id={ props.ID }
+		}
+		if props.Action != "" {
+			action={ props.Action }
+		}
+		method={ getMethod(props.Method) }
+		novalidate
+		class={ utils.TwMerge("space-y-6", props.Class) }
+		data-form-validate="true"
+		data-validate-on-blur={ validateOnBlur }
+		data-validate-on-change={ validateOnChange }
+		data-validate-on-input={ validateOnInput }
+		data-clear-errors-on-focus={ clearErrorsOnFocus }
+		data-clear-errors-on-input={ clearErrorsOnInput }
+		data-show-success-state={ showSuccessState }
+		{ props.Attributes... }
+	>
+		{ children... }
+	</form>
+}
+
+// Helper functions
+func getMethod(method string) string {
+	if method == "" {
+		return "post"
+	}
+	return method
+}
+
+func getInputType(inputType string) string {
+	if inputType == "" {
+		return "text"
+	}
+	return inputType
 }
 
 func messageVariantClass(variant MessageVariant) string {

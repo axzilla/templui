@@ -39,6 +39,24 @@ templ Form() {
 				ShowcaseFile:    showcase.InputForm(),
 				PreviewCodeFile: "input_form.templ",
 			})
+			
+			@modules.ExampleWrapper(modules.ExampleWrapperProps{
+				SectionName:     "Form with Validation",
+				ShowcaseFile:    showcase.FormWithValidation(),
+				PreviewCodeFile: "form_validation.templ",
+			})
+			
+			@modules.ExampleWrapper(modules.ExampleWrapperProps{
+				SectionName:     "Advanced Form",
+				ShowcaseFile:    showcase.FormAdvanced(),
+				PreviewCodeFile: "form_validation.templ",
+			})
+			
+			@modules.ExampleWrapper(modules.ExampleWrapperProps{
+				SectionName:     "Hybrid Server/Client Validation",
+				ShowcaseFile:    showcase.FormWithServerErrors(map[string]string{}),
+				PreviewCodeFile: "form_hybrid.templ",
+			})
 			@modules.ContainerWrapper(modules.ContainerWrapperProps{
 				Title: "Installation",
 				ID:    "installation",
