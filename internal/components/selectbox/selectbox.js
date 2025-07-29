@@ -231,7 +231,8 @@
           valueEl.classList.remove("text-muted-foreground");
         }
         if (hiddenInput) {
-          const value = selectedItem.getAttribute("data-value") || "";
+          const value =
+            selectedItem.getAttribute("data-tui-selectbox-value") || "";
           // Only set initial value if not already set
           if (!hiddenInput.hasAttribute("data-initialized")) {
             hiddenInput.value = value;
