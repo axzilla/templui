@@ -1,6 +1,15 @@
 (function () {
   let isSelecting = false;
 
+  function checkVisibility(element) {
+    const style = window.getComputedStyle(element);
+    return (
+      style.display !== "none" &&
+      style.visibility !== "hidden" &&
+      style.opacity !== "0"
+    )
+  };
+
   function initSelect(wrapper) {
     if (!wrapper || wrapper.hasAttribute("data-initialized")) return;
     wrapper.setAttribute("data-initialized", "true");
@@ -17,14 +26,9 @@
     const contentID = triggerButton.getAttribute(
       "data-tui-selectbox-content-id",
     );
-    const isMultiple =
-      triggerButton.getAttribute("data-tui-selectbox-multiple") === "true";
-    const showPills =
-      triggerButton.getAttribute("data-tui-selectbox-show-pills") === "true";
     const content = contentID ? document.getElementById(contentID) : null;
     const valueEl = triggerButton.querySelector(".select-value");
     const hiddenInput = triggerButton.querySelector('input[type="hidden"]');
-
     if (!content || !valueEl || !hiddenInput) {
       console.error(
         "Select box: Missing required elements for initialization.",
@@ -39,8 +43,31 @@
       return;
     }
 
-    // Add keyboard event handler for trigger button
-    triggerButton.addEventListener("keydown", (event) => {
+    const isMultiple =
+      triggerButton.getAttribute("data-tui-selectbox-multiple") === "true";
+    const showPills =
+      triggerButton.getAttribute("data-tui-selectbox-show-pills") === "true";
+    const searchInput = content.querySelector("[data-tui-selectbox-search]");
+    const form = wrapper.closest("form");
+
+    // Remove existing event listeners
+    document.removeEventListener("click", handleTriggerClickFocusSearch);
+    triggerButton.removeEventListener("keydown", handleTriggerKeydownOpenContent);
+    triggerButton.removeEventListener("keydown", handleTriggerKeydownFocusSearch);
+    content.removeEventListener("keydown", handleContentKeydownNavigation);
+    content.removeEventListener("click", handleContentClickSelect);
+    content.removeEventListener("keydown", handleContentKeydownSelect);
+    content.removeEventListener("mouseover", handleContentMouseoverStyle);
+    content.removeEventListener("mouseleave", handleContentMouseleaveResetStyle);
+    if (searchInput) {
+      searchInput.removeEventListener("input", handleSearchInputOnInput);
+    }
+    if (form) {
+      form.removeEventListener("reset", handleFormReset);
+    }
+
+    // EventListener Functions
+    function handleTriggerKeydownOpenContent(event) {
       if (
         event.key.length === 1 ||
         event.key === "Backspace" ||
@@ -49,9 +76,6 @@
         event.preventDefault();
         document.getElementById(contentID).click();
         setTimeout(() => {
-          const searchInput = document.querySelector(
-            "[data-tui-selectbox-search]",
-          );
           if (searchInput) {
             searchInput.focus();
             if (event.key !== "Backspace" && event.key !== "Delete") {
@@ -60,78 +84,55 @@
           }
         }, 0);
       }
-    });
+    }
 
-    // Remove existing event listeners
-    const newContent = content.cloneNode(true);
-    content.parentNode.replaceChild(newContent, content);
+    function handleTriggerClickFocusSearch(event) {
+      if (triggerButton.contains(event.target)) {
+        setTimeout(() => checkVisibility(content) && searchInput.focus(), 50);
+      }
+    }
 
-    // Search functionality
-    const searchInput = newContent.querySelector("[data-tui-selectbox-search]");
-    if (searchInput) {
-      // Focus search input when popover opens
-      const checkVisibility = () => {
-        const style = window.getComputedStyle(newContent);
-        if (
-          style.display !== "none" &&
-          style.visibility !== "hidden" &&
-          style.opacity !== "0"
-        ) {
-          searchInput.focus();
-        }
-      };
+    function handleTriggerKeydownFocusSearch(event) {
+      if (event.key === "Enter" || event.key === " ") {
+        setTimeout(() => checkVisibility(content) && searchInput.focus(), 50);
+      }
+    }
 
-      // Focus when opened by click
-      document.addEventListener("click", (e) => {
-        if (triggerButton.contains(e.target)) {
-          setTimeout(checkVisibility, 50);
-        }
-      });
+    function handleSearchInputOnInput(event) {
+      const searchTerm = event.target.value.toLowerCase().trim();
+      const items = content.querySelectorAll(".select-item");
 
-      // Focus when opened by Enter key
-      triggerButton.addEventListener("keydown", (e) => {
-        if (e.key === "Enter" || e.key === " ") {
-          setTimeout(checkVisibility, 50);
-        }
-      });
+      items.forEach((item) => {
+        const itemText =
+          item
+            .querySelector(".select-item-text")
+            ?.textContent.toLowerCase() || "";
+        const itemValue =
+          item.getAttribute("data-tui-selectbox-value")?.toLowerCase() || "";
+        const isVisible =
+          searchTerm === "" ||
+          itemText.includes(searchTerm) ||
+          itemValue.includes(searchTerm);
 
-      searchInput.addEventListener("input", (e) => {
-        const searchTerm = e.target.value.toLowerCase().trim();
-        const items = newContent.querySelectorAll(".select-item");
-
-        items.forEach((item) => {
-          const itemText =
-            item
-              .querySelector(".select-item-text")
-              ?.textContent.toLowerCase() || "";
-          const itemValue =
-            item.getAttribute("data-tui-selectbox-value")?.toLowerCase() || "";
-          const isVisible =
-            searchTerm === "" ||
-            itemText.includes(searchTerm) ||
-            itemValue.includes(searchTerm);
-
-          item.style.display = isVisible ? "" : "none";
-        });
+        item.style.display = isVisible ? "" : "none";
       });
     }
 
-    // Keyboard navigation event listener
-    newContent.addEventListener("keydown", (e) => {
-      if (e.key === "ArrowDown" || e.key === "ArrowUp") {
-        e.preventDefault();
+    function handleContentKeydownNavigation(event) {
+      if (event.key === "ArrowDown" || event.key === "ArrowUp") {
+        event.preventDefault();
         const visibleItems = Array.from(
-          newContent.querySelectorAll(".select-item"),
+          content.querySelectorAll(".select-item"),
         ).filter((item) => item.style.display !== "none");
 
         if (visibleItems.length === 0) return;
 
-        const currentFocused = newContent.querySelector(".select-item:focus");
+        const currentFocused = content.querySelector(".select-item:focus");
         let nextIndex = 0;
 
         if (currentFocused) {
           const currentIndex = visibleItems.indexOf(currentFocused);
-          if (e.key === "ArrowDown") {
+          if (event.key === "ArrowDown") {
             nextIndex = (currentIndex + 1) % visibleItems.length;
           } else {
             nextIndex =
@@ -140,15 +141,15 @@
         }
 
         visibleItems[nextIndex].focus();
-      } else if (e.key === "Enter") {
-        e.preventDefault();
-        const focusedItem = newContent.querySelector(".select-item:focus");
+      } else if (event.key === "Enter") {
+        event.preventDefault();
+        const focusedItem = content.querySelector(".select-item:focus");
         if (focusedItem) {
           selectItem(focusedItem);
         }
-      } else if (e.key === "Escape") {
-        e.preventDefault();
-        const focusedItem = newContent.querySelector(".select-item:focus");
+      } else if (event.key === "Escape") {
+        event.preventDefault();
+        const focusedItem = content.querySelector(".select-item:focus");
         if (focusedItem) {
           // If focus is on an item, move to search input
           searchInput.focus();
@@ -162,10 +163,99 @@
           }
         }
       }
-    });
+    }
+
+    function handleContentClickSelect(event) {
+      const item = event.target.closest(".select-item");
+      if (item) selectItem(item);
+    }
+
+    function handleContentKeydownSelect(event) {
+      const item = event.target.closest(".select-item");
+      if (item && (event.key === "Enter" || event.key === " ")) {
+        event.preventDefault();
+        selectItem(item);
+      }
+    }
+
+    function handleContentMouseoverStyle(event) {
+      const item = event.target.closest(".select-item");
+      if (!item || item.getAttribute("data-tui-selectbox-disabled") === "true")
+        return;
+      // Reset all others first
+      content.querySelectorAll(".select-item").forEach((el) => {
+        el.classList.remove("bg-accent", "text-accent-foreground", "bg-muted");
+      });
+      // Apply hover style only if not selected
+      if (item.getAttribute("data-tui-selectbox-selected") !== "true") {
+        item.classList.add("bg-accent", "text-accent-foreground");
+      }
+    }
+
+    // Reset visual state of items
+    function handleContentMouseleaveResetStyle() {
+      content.querySelectorAll(".select-item").forEach((item) => {
+        if (item.getAttribute("data-tui-selectbox-selected") === "true") {
+          item.classList.add("bg-accent", "text-accent-foreground");
+          item.classList.remove("bg-muted");
+        } else {
+          item.classList.remove(
+            "bg-accent",
+            "text-accent-foreground",
+            "bg-muted",
+          );
+        }
+      });
+    }
+
+    function handleFormReset(){
+      // Clear all selections
+      content.querySelectorAll(".select-item").forEach((item) => {
+        item.setAttribute("data-tui-selectbox-selected", "false");
+        const check = item.querySelector(".select-check");
+        if (check) check.classList.replace("opacity-100", "opacity-0");
+        item.classList.remove("bg-accent", "text-accent-foreground");
+      });
+
+      // Reset display value to placeholder
+      const placeholder =
+        valueEl.getAttribute("data-placeholder") ||
+        triggerButton
+          .querySelector(".select-value")
+          ?.getAttribute("data-placeholder") ||
+        "Select...";
+      valueEl.textContent = placeholder;
+      valueEl.classList.add("text-muted-foreground");
+
+      // Clear hidden input
+      hiddenInput.value = "";
+
+      // Clear search input if exists
+      if (searchInput) {
+        searchInput.value = "";
+        // Show all items again
+        content.querySelectorAll(".select-item").forEach((item) => {
+          item.style.display = "";
+        });
+      }
+    }
+
+    // Add keyboard event handler for trigger button
+    triggerButton.addEventListener("keydown", handleTriggerKeydownOpenContent);
+
+    if (searchInput) {
+      // Focus when opened by click
+      document.addEventListener("click", handleTriggerClickFocusSearch);
+      // Focus when opened by Enter key
+      triggerButton.addEventListener("keydown", handleTriggerKeydownFocusSearch);
+      searchInput.addEventListener("input", handleSearchInputOnInput);
+    }
+
+    // Keyboard navigation event listener
+    content.addEventListener("keydown", handleContentKeydownNavigation);
 
     // Initialize display value if an item is pre-selected
-    const selectedItems = newContent.querySelectorAll(
+    const selectedItems = content.querySelectorAll(
       '.select-item[data-tui-selectbox-selected="true"]',
     );
     if (selectedItems.length > 0) {
@@ -231,7 +321,7 @@
           valueEl.classList.remove("text-muted-foreground");
         }
         if (hiddenInput) {
-          const value = selectedItem.getAttribute("data-value") || "";
+          const value = selectedItem.getAttribute("data-tui-selectbox-value") || "";
           // Only set initial value if not already set
           if (!hiddenInput.hasAttribute("data-initialized")) {
             hiddenInput.value = value;
@@ -240,22 +330,6 @@
           }
         }
       }
-    }
-
-    // Reset visual state of items
-    function resetItemStyles() {
-      newContent.querySelectorAll(".select-item").forEach((item) => {
-        if (item.getAttribute("data-tui-selectbox-selected") === "true") {
-          item.classList.add("bg-accent", "text-accent-foreground");
-          item.classList.remove("bg-muted");
-        } else {
-          item.classList.remove(
-            "bg-accent",
-            "text-accent-foreground",
-            "bg-muted",
-          );
-        }
-      });
     }
 
     // Select an item
@@ -292,7 +366,7 @@
         }
 
         // Update display value
-        const selectedItems = newContent.querySelectorAll(
+        const selectedItems = content.querySelectorAll(
           '.select-item[data-tui-selectbox-selected="true"]',
         );
         if (selectedItems.length > 0) {
@@ -368,7 +442,7 @@
       } else {
         // Single selection mode
         // Reset all items in this content
-        newContent.querySelectorAll(".select-item").forEach((el) => {
+        content.querySelectorAll(".select-item").forEach((el) => {
           el.setAttribute("data-tui-selectbox-selected", "false");
           el.classList.remove(
             "bg-accent",
@@ -419,72 +493,18 @@
       }, 100);
     }
 
+
     // Event Listeners for Items (delegated from content for robustness)
-    newContent.addEventListener("click", (e) => {
-      const item = e.target.closest(".select-item");
-      if (item) selectItem(item);
-    });
-
-    newContent.addEventListener("keydown", (e) => {
-      const item = e.target.closest(".select-item");
-      if (item && (e.key === "Enter" || e.key === " ")) {
-        e.preventDefault();
-        selectItem(item);
-      }
-    });
-
+    content.addEventListener("click", handleContentClickSelect);
+    content.addEventListener("keydown", handleContentKeydownSelect);
     // Event: Mouse hover on items (delegated)
-    newContent.addEventListener("mouseover", (e) => {
-      const item = e.target.closest(".select-item");
-      if (!item || item.getAttribute("data-tui-selectbox-disabled") === "true")
-        return;
-      // Reset all others first
-      newContent.querySelectorAll(".select-item").forEach((el) => {
-        el.classList.remove("bg-accent", "text-accent-foreground", "bg-muted");
-      });
-      // Apply hover style only if not selected
-      if (item.getAttribute("data-tui-selectbox-selected") !== "true") {
-        item.classList.add("bg-accent", "text-accent-foreground");
-      }
-    });
-
+    content.addEventListener("mouseover", handleContentMouseoverStyle);
     // Reset hover styles when mouse leaves the content area
-    newContent.addEventListener("mouseleave", resetItemStyles);
+    content.addEventListener("mouseleave", handleContentMouseleaveResetStyle);
 
     // Form reset support
-    const form = wrapper.closest("form");
     if (form) {
-      form.addEventListener("reset", () => {
-        // Clear all selections
-        newContent.querySelectorAll(".select-item").forEach((item) => {
-          item.setAttribute("data-tui-selectbox-selected", "false");
-          const check = item.querySelector(".select-check");
-          if (check) check.classList.replace("opacity-100", "opacity-0");
-          item.classList.remove("bg-accent", "text-accent-foreground");
-        });
-
-        // Reset display value to placeholder
-        const placeholder =
-          valueEl.getAttribute("data-placeholder") ||
-          triggerButton
-            .querySelector(".select-value")
-            ?.getAttribute("data-placeholder") ||
-          "Select...";
-        valueEl.textContent = placeholder;
-        valueEl.classList.add("text-muted-foreground");
-
-        // Clear hidden input
-        hiddenInput.value = "";
-
-        // Clear search input if exists
-        if (searchInput) {
-          searchInput.value = "";
-          // Show all items again
-          newContent.querySelectorAll(".select-item").forEach((item) => {
-            item.style.display = "";
-          });
-        }
-      });
+      form.addEventListener("reset", handleFormReset);
     }
   }
 
@@ -498,3 +518,4 @@
 
   document.addEventListener("DOMContentLoaded", () => init());
 })();
+
