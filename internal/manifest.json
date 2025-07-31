@@ -198,7 +198,7 @@
       "name": "selectbox",
       "description": "Dropdown selection menu",
       "files": ["internal/components/selectbox/selectbox.templ"],
-      "dependencies": ["button", "icon", "popover"],
+      "dependencies": ["button", "icon", "popover", "input"],
       "hasJS": true
     },
     {
